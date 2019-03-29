@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/helmi/pfe-project/backend_mgedi/model_intents.tflearn"
+all_model_checkpoint_paths: "/home/helmi/pfe-project/backend_mgedi/model_intents.tflearn"
