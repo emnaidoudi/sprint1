@@ -4,8 +4,13 @@ from spellchecker import SpellChecker
 from framework import response_intents
 from flask import Flask, jsonify
 
-print(response_intents("hello"))
+app = Flask(__name__)
 
-print(response_intents("thaks"))
-print(response_intents("bye"))
+@app.route("/api/chatbot/basic/<string:sentence>")
+def basic(sentence):
+    return jsonify({"response":response_intents(sentence)})
 
+
+
+if __name__ == '__main__':
+    app.run(debug=True,host='0.0.0.0')
