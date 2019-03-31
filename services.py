@@ -25,5 +25,4 @@ def get_wheather(loc="tunis"):
      x="Temperature : %s°C, %s "  % (int(j['main']["temp_max"]),j["weather"][0]["description"])
      return  x
 
-def manager(year=2019):
-    return "emna hiya il boss %s"%(year)     
+   

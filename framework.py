@@ -4,9 +4,10 @@ import numpy as np
 import tflearn
 import tensorflow as tf
 import random
-from nlp import bag_of_words
+from nlp import bag_of_words, stemming
 from services import *
 from entities import spacy_entity
+from fromDatabase import get_manager
 
 # import our chatbot intents file
 with open('intents.json') as json_data:
@@ -45,16 +46,37 @@ entities_model=build_nn(etrain_x,etrain_y,"entities")
 entities_model.load('./model_entities.tflearn')
 
 
-def classify(sentence,words,classes):
+def classify(sentence,words,classes,model):
     ERROR_THRESHOLD = 0.25
     # generate probabilities from the model
-    results = intent_model.predict([bag_of_words(sentence, words)])[0]
+    results = model.predict([bag_of_words(sentence, words)])[0]
     # filter out predictions below a threshold
-    results = [[i,r] for i,r in enumerate(results) if r>ERROR_THRESHOLD]
+    results = [[i,r] for i,r in enumerate(results) if r>ERROR_THRESHOLD]  
     # sort by strength of probability
     results.sort(key=lambda x: x[1], reverse=True)
     # return tuple of intent and probability
-    return  classes[results[0][0]]
+    return_list = []
+    for r in results:
+        return_list.append((classes[r[0]]))
+    # return tuple of intent and probability
+    return  return_list
+
+def entity_exact(sentence):
+    all_entities=classify(sentence,ewords,eclasses,entities_model)
+    print("all ",all_entities) 
+    list_entities=list()
+    for e in all_entities:
+        for i in entities["entities"]:
+            if i["tag"]==e:
+                examples=i["patterns"]
+                print("11" , examples)
+                entities_stemmed=[stemming(word) for word in examples ]
+                for i in entities_stemmed:
+                    if(i in sentence):
+                        x=entities_stemmed.index(i)
+                        list_entities.append(examples[x])
+                break 
+    return list_entities           
 
 
 # create a data structure to hold user context
@@ -62,15 +84,20 @@ context=""
 def response(sentence):
     spacy_detections=spacy_entity(sentence)
     global context
-    intent=classify(sentence,iwords,iclasses) 
+    intent=classify(sentence,iwords,iclasses,intent_model)[0]
     if intent=="weather":
         loc="tunis"
         if(spacy_detections):
             loc=[i[0] for i in spacy_detections if 'GPE' in i][0]
         return get_wheather(loc)
     if intent=="askManager":
-        #year=[i[0] for i in spacy_detections if 'DATE' in i][0]
-        return manager(12)
+        try:
+           group=entity_exact(sentence)[0]
+           print("group ",group)
+           year=[i[0] for i in spacy_detections if 'DATE' in i][0]
+        except:  
+            return get_manager("devops",'2019')
+        return get_manager(group,year)  
 
     for i in intents["intents"]:
         if len(context)>0 and 'context_filter' in i:
@@ -88,6 +115,7 @@ def response(sentence):
                 return random.choice(i["responses"])
             if context=="":
                 return random.choice(i["responses"])
+    return "I didn't understand what you're saying, sorry"            
 
 
 

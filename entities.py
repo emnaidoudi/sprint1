@@ -14,5 +14,7 @@ def spacy_entity(sentence):
     entity_extraction()        
     return all_extractions
 
+    
+
 
   

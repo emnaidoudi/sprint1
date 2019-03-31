@@ -30,12 +30,11 @@ def train_en():
 
 @app.route("/api/chatbot/basic/<string:sentence>")
 def basic(sentence):
-    try:
+    """try:
         bot_answer=str(bot.get_response(sentence))
-        #return jsonify({"response":bot_answer})
-        print(4)
-    except:
-        return jsonify({"response":response(sentence)})
+        return jsonify({"response":"yaaaaaaa"})        
+    except:"""
+    return jsonify({"response":response(sentence)})
 
 
 if __name__ == '__main__':
